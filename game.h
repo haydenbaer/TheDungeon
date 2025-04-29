@@ -6,10 +6,16 @@
 #include <termios.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 #include "player.h"
 #include "enemy.h"
 #include "scene.h"
 #include "item.h"
+#include "treasure.h"
+
+#define MAX_HEALTH  100 // PLAYER MAX HEALTH
+#define HIT_CHANCE  75 // CHANCE TO HIT
+#define HEAL_CHANCE 70 // CHANCE TO HEAL
 
 // CHECK IF GAME SHOULD RUN T/F
 extern int run;
@@ -31,6 +37,8 @@ void waitForEnter();
 void printSword(Player *p);
 void printShield(Player *p);
 
+void inspectRoom(int currentFloor);
+
 // FUCNTIONS TO ENCOUNTER ENEMIES
 void encounterEnemy(int floor);
 void encounterEnemyF1();
@@ -48,7 +56,7 @@ void drawInput(int scene);
 void game(); 
 void fight(Enemy *e, Player *p);
 void setupEnemyStats();
-void look(Player *p);
+//void look(Player *p);
 int askToEquip();
 void heal();
 

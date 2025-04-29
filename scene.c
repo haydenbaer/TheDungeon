@@ -6,7 +6,7 @@ void sceneIntro()
     printf("    THERE LIES A TREASURE THAT GRANTS ANY WISH TO\n");
     printf("    ANYONE BRAVE AND CAPABLE ENOUGH TO FIND IT.\n\n");
 
-    printf("    AS AN EXPLORER, YOU EQUIP A SWORD AND SHIELD\n");
+    printf("    AS AN EXPLORER, YOU PREPARE YOURSELF\n");
     printf("    AND DESCEND DOWN INTO THE DEPTHS OF THE DUNGEON\n");
     printf("    IN SEARCH OF THESE TREASURES.\n\n");
 
@@ -35,6 +35,11 @@ static const char *emptySceneArt =
 "|⣿⣿⣿⣿⣿⣽⣿⢗⡐⠀⠀⠀⠋⠉⠁⠀⠰⠀⠀⠀⠀⠀⠀⠀⠀⠠⠀⠀⠀⢩⣿⢿⣿⣿⣿⣿⣿⣿⣿⣿|\n"
 "|⣿⣿⣿⣿⣿⣿⣿⣿⣪⣭⡍⠉⢉⠄⠉⠀⠡⠀⠀⠀⠀⠀⠀⠀⠀⠀⠁⠀⢆⣂⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿|\n";
 
+void sceneNothing()
+{
+    fputs(emptySceneArt, stdout);
+}
+
 static const char *stairsArt =
 "|⡏⠂⠀⠀⢀⢼⣿⣿⣿⣟⣿⣍⡶⣿⣀⡙⣥⡮⠈⣖⢰⢷⠂⣪⣛⣱⢥⡾⡂⢑⠮⣇⢳⣟⡴⠦⢂⢤⠄⠠|\n"
 "|⡃⠀⠀⠀⠀⢊⢿⣿⣿⣽⣿⣿⣿⠟⢷⡑⣾⣚⢄⣙⢬⡔⡀⠀⣂⢐⡿⢑⣒⣴⣁⣯⣦⢼⣿⣀⠀⡎⠀⠰|\n"
@@ -51,10 +56,9 @@ static const char *stairsArt =
 "|⠀⣠⣹⣾⡆⢀⠴⠂⠤⡀⠂⠀⠀⠲⡟⣇⣴⣽⡿⠟⠉⠀⠀⣴⣶⣿⣿⠟⠁⠀⠀⣰⣮⣿⣿⣿⣿⠟⠁⠀|\n"
 "|⣸⣿⣝⣷⡃⡀⠀⠦⠀⠢⡄⠀⢀⠈⠳⣾⠿⠋⠄⠀⢠⣢⣾⣿⡿⠟⠁⠀⠀⢀⣼⣿⣿⣿⣿⠟⠁⠀⠀⠀|\n";
 
-
-void sceneNothing()
+void sceneStairs()
 {
-    fputs(emptySceneArt, stdout);
+    fputs(stairsArt, stdout);
 }
 
 static const char *ratArt =

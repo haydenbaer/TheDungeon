@@ -16,6 +16,7 @@ int hasHealed           = 0;
 int hasWon              = 0; // Default 0
 int enemiesKilled       = 0; // Default 0
 int timesHealed         = 0;
+int foundTreasureRoom   = 0;
 
 int lastCheckedSpace = -1;
 
@@ -29,11 +30,9 @@ void clearScreen()
 void waitForEnter()
 {
     printf("    PRESS ENTER TO CONTINUE...\n    ");
-    //printf("    >> ");
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF) {} // FLUSH NEWLINE FROM BUFFER
-    getchar(); // WAITS FOR THE ENTER KEY
+    getchar();
 }
+
 
 void printSword(Player *p)
 {   
@@ -90,6 +89,7 @@ void nextFloor()
 {
     currentSpace = 0;
     currentFloor += 1;
+    foundTreasureRoom = 0;
 }
 
 // BASED ON FLOOR, RUN ENCOUNTER FUNCTION
@@ -255,10 +255,10 @@ void drawStats(const Player *p)
     printShield(&player);
     printf("\n");
     
-    if (ifEnemy)
+    /*if (ifEnemy)
     {
         printf(" Enemy HP: %d\n", enemy.health);
-    }
+    }*/
     
     printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 }
@@ -304,191 +304,186 @@ void drawScene(SceneID scene)
         case DRAGON:
             sceneDragon();
             break;
+        case STAIRS:
+            sceneStairs();
+            break;
     }
 }
 
 // DRAWS THE AREA FOR THE USER TO INPUT ACTIONS
 void drawInput(int scene)
 {
-    if (scene == 0) {
-        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-        waitForEnter();
+    if (ifEnemy)
+    {
+        int input;
 
         printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+        printf(" ACTIONS:    1. FIGHT    2. HEAL    3. INSPECT    4. COMMANDS\n");
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
 
-        // ADVANCE TO THE NEXT SCENE
-        currentScene = 1;
+        printf(" >> ");
+        scanf("%d", &input);
+        getchar();
+
+        switch (input)
+        {
+        case 1:
+            // ATTACK ENEMY
+            fight(&enemy, &player);
+
+            if (enemy.health <= 0 && currentScene == DRAGON)
+            {
+                printf("    -> You have defeated the dragon!!\n");
+                waitForEnter();
+                ifEnemy = 0;
+                hasWon = 1;
+                enemiesKilled += 1;
+                run = 0;
+            }
+            else if (enemy.health <= 0)
+            {
+                printf("    -> You defeated the enemy!\n");
+                waitForEnter();
+                ifEnemy = 0;
+                currentScene = NOTHING;
+                enemiesKilled += 1;
+            }
+            else if (player.health <= 0)
+            {
+                printf("    ~ You have been slain...\n    ! GAME OVER !\n");
+                waitForEnter();
+                run = 0;
+            }
+
+            break;
+        case 2:
+            // TRY TO HEAL
+            if (hasHealed)
+            {
+                printf("    ~ You have already tried healing!\n");
+            }
+            else 
+            {
+                heal();
+            }
+            waitForEnter();
+            break;
+        case 3:
+            // SHOW ENEMY INFORMATION
+            printf("    -> %s: HP: %d, ATK: %d, DF: %d\n", enemy.name, enemy.health, enemy.attack, enemy.defense);
+            waitForEnter();
+            break;
+        case 4:
+            // LIST COMMANDS
+            printf("    LIST OF COMMANDS:\n");
+            printf("    1. ATTACK - TRY TO ATTACK THE ENEMY\n");
+            printf("    2. HEAL - TRY TO HEAL YOURSELF\n");
+            printf("    3. INSPECT - CHECK OUT ENEMY INFORMATION\n");
+            printf("    9. EXIT - QUITS GAME\n");
+            waitForEnter();
+        case 9:
+            // EXIT GAME
+            run = 0;
+            break;
+        default:
+            break;
+        }
     }
     else
     {
-        if (ifEnemy)
+        int input;
+
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+        printf(" ACTIONS:    1. MOVE    2. INSPECT    3. COMMANDS\n");
+        printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+
+        printf(" >> ");
+        scanf("%d", &input);
+        getchar();
+
+        switch (input)
         {
-            int input;
+        case 1:
+            // MOVE AHEAD
+            printf("    -> YOU CHOOSE TO MOVE AHEAD.\n");
+            currentSpace += 1; // Increment current space
+            hasLooked = 0;
+            hasHealed = 0;
 
-            printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-            printf(" ACTIONS:    1. FIGHT    2. HEAL    3. LOOK    4. COMMANDS\n");
-            printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-
-            printf(" >> ");
-            scanf("%d", &input);
-            switch (input)
-            {
-            case 1:
-                // ATTACK ENEMY
-                fight(&enemy, &player);
-
-                if (enemy.health <= 0 && currentScene == DRAGON)
-                {
-                    printf("    -> You have defeated the dragon!!\n");
-                    waitForEnter();
-                    ifEnemy = 0;
-                    hasWon = 1;
-                    enemiesKilled += 1;
-                    run = 0;
-                }
-                else if (enemy.health <= 0)
-                {
-                    printf("    -> You defeated the enemy!\n");
-                    waitForEnter();
-                    ifEnemy = 0;
-                    currentScene = NOTHING;
-                    enemiesKilled += 1;
-                }
-                else if (player.health <= 0)
-                {
-                    printf("    ~ You have been slain...\n    ! GAME OVER !\n");
-                    waitForEnter();
-                    run = 0;
-                }
-
-                break;
-            case 2:
-                // TRY TO HEAL
-                if (hasHealed)
-                {
-                    printf("    ~ You have already tried healing!\n");
-                }
-                else 
-                {
-                    heal();
-                }
-                waitForEnter();
-                break;
-            case 3:
-                // LOOK AROUND
-                if (hasLooked)
-                {
-                    printf("    ~ YOU HAVE ALREADY LOOKED AROUND.\n");
-                    waitForEnter();
-                }
-                else 
-                {
-                    printf("    -> YOU CHOOSE TO LOOK AROUND.\n");
-                    look(&player);
-                }
-                break;
-            case 4:
-                // LIST COMMANDS
-                printf("    LIST OF COMMANDS:\n");
-                printf("    1. ATTACK - TRY TO ATTACK THE ENEMY\n");
-                printf("    2. HEAL - TRY TO HEAL YOURSELF\n");
-                printf("    3. LOOK - LOOK AROUND YOU AND GET INFORMATION\n");
-                printf("    9. EXIT - QUITS GAME\n");
-                waitForEnter();
-            case 9:
-                // EXIT GAME
-                run = 0;
-                break;
-            default:
-                break;
-            }
-        }
-        else
-        {
-            int input;
-
-            printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-            printf(" ACTIONS:    1. MOVE    2. LOOK    3. COMMANDS\n");
-            printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-
-            printf(" >> ");
-            scanf("%d", &input);
-            switch (input)
-            {
-            case 1:
-                // MOVE AHEAD
-                printf("    -> YOU CHOOSE TO MOVE AHEAD.\n");
-                currentSpace += 1; // Increment current space
-                hasLooked = 0;
-                hasHealed = 0;
-                break;
-            case 2:
-                // LOOK AROUND
-                if (hasLooked)
-                {
-                    printf("    ~ YOU HAVE ALREADY LOOKED AROUND.\n");
-                    waitForEnter();
-                }
-                else 
-                {
-                    printf("    -> YOU CHOOSE TO LOOK AROUND.\n");
-                    look(&player);
-                }
-                break;
-            case 3:
-                // LIST COMMANDS
-                printf("    LIST OF COMMANDS:\n");
-                printf("    1. MOVE - ADVANCES YOU ONE SPACE\n");
-                printf("    2. LOOK - LOOK AROUND YOU AND GET INFORMATION\n");
-                printf("    9. EXIT - QUITS GAME\n");
-                waitForEnter();
-                break;
-            case 9:
-                run = 0;
-                break;
-            default:
-                break;
-            }
+            checkTreasureRoom(&player, currentFloor, currentSpace, &foundTreasureRoom);
+            break;
+        case 2:
+            inspectRoom(currentFloor);
+            break;
+        case 3:
+            // LIST COMMANDS
+            printf("    LIST OF COMMANDS:\n");
+            printf("    1. MOVE - ADVANCES YOU ONE SPACE\n");
+            printf("    3. INSPECT - LOOK AROUND YOU FOR INFORMATION\n");
+            printf("    9. EXIT - QUITS GAME\n");
+            waitForEnter();
+            break;
+        case 9:
+            run = 0;
+            break;
+        default:
+            break;
         }
     }
 }
 
-// change the prototype:
-void fight(Enemy *e, Player *p)
+void inspectRoom(int currentFloor)
 {
-    int enemyHit = rand() % 100;
-
-    if (enemyHit < 75) {
-        int dmg = e->attack - p->defense;
-        if (dmg <= 0) { dmg = 0; };
-        printf("    -> Enemy hits and deals %d damage!\n", dmg);
-        p->health -= dmg;
-    } 
-    else 
+    if (currentFloor == 1)
     {
-        printf("    ~ Enemy attack misses!\n");
+        printf("    The tunnel around you is stoney and cold...\n");
+    }
+    else if (currentFloor == 2)
+    {
+        printf("    The air is cold and wet. You hear voices whisper...\n");
+    }
+    else if (currentFloor == 3)
+    {
+        printf("    You hear footsteps and groans echo ahead...\n");
+    }
+    else if (currentFloor == 4)
+    {
+        printf("    Stomps echo from ahead in the tunnel...\n");
+    }
+    else if (currentFloor == 5)
+    {
+
     }
 
-    int playerHit = rand() % 100;
+    waitForEnter();
+}
 
-    if (playerHit < 75) {
+void fight(Enemy *e, Player *p) {
+    // PLAYER ATTACK
+    if (rand() % 100 < HIT_CHANCE) {
         int dmg = p->attack - e->defense;
-        if (dmg <= 0) 
-        { 
-            dmg = 1; 
-        }
-
-        printf("    -> You hit the enemy and deal %d damage!\n", dmg);
+        if (dmg < 1) dmg = 1; // ALWAYS AT LEAST 1 DAMAGE
+        printf("    -> You hit the enemy for %d damage!\n", dmg);
         e->health -= dmg;
-    } 
-    else 
-    {
+    } else {
         printf("    ~ Your attack misses!\n");
     }
 
-    // AFTER ATTACK ROUND WAIT FOR ENTER
+    // ENEMY COUNTERATTACK - IF ALIVE
+    if (e->health > 0) {
+        if (rand() % 100 < HIT_CHANCE) {
+            int dmg = e->attack - p->defense;
+            if (dmg < 0) dmg = 0; // NEVER HEAL YOU WITH HIT
+            printf("    -> Enemy hits you for %d damage!\n", dmg);
+            p->health -= dmg;
+        } else {
+            printf("    ~ Enemy attack misses!\n");
+        }
+    }
+
     waitForEnter();
 }
+
 
 void setupEnemyStats()
 {
@@ -501,229 +496,78 @@ void setupEnemyStats()
             enemy.id = 0;
             break;
         case RAT:
-            enemy.health = 6;
-            enemy.attack = 5;
+            enemy.health = 12;
+            enemy.attack = 4;
             enemy.defense = 0;
             enemy.id = 1;
+            strcpy(enemy.name, "RAT");
             break;
         case SLIME:
-            enemy.health = 8;
+            enemy.health = 14;
             enemy.attack = 5;
             enemy.defense = 1;
             enemy.id = 2;
+            strcpy(enemy.name, "SLIME");
             break;
         case BAT:
             enemy.health = 10;
-            enemy.attack = 5;
+            enemy.attack = 4;
             enemy.defense = 0;
             enemy.id = 3;
+            strcpy(enemy.name, "BAT");
             break;
         case GHOST:
             enemy.health = 20;
-            enemy.attack = 7;
+            enemy.attack = 6;
             enemy.defense = 2;
             enemy.id = 4;
+            strcpy(enemy.name, "GHOST");
+            break;
+        case IMP:
+            enemy.health = 18;
+            enemy.attack = 6;
+            enemy.defense = 1;
+            enemy.id = 5;
+            strcpy(enemy.name, "IMP");
             break;
         case SKELETON:
-            enemy.health = 20;
-            enemy.attack = 10;
-            enemy.defense = 4;
-            enemy.id = 5;
-            break;
-        case MUMMY:
-            enemy.health = 20;
-            enemy.attack = 10;
+            enemy.health = 28;
+            enemy.attack = 8;
             enemy.defense = 4;
             enemy.id = 6;
+            strcpy(enemy.name, "SKELETON");
+            break;
+        case MUMMY:
+            enemy.health = 32;
+            enemy.attack = 8;
+            enemy.defense = 6;
+            enemy.id = 7;
+            strcpy(enemy.name, "MUMMY");
             break;
         case MINOTAUR:
-            enemy.health = 30;
-            enemy.attack = 15;
+            enemy.health = 40;
+            enemy.attack = 12;
             enemy.defense = 8;
-            enemy.id = 7;
+            enemy.id = 8;
+            strcpy(enemy.name, "MINOTAUR");
             break;
         case WENDIGOO:
-            enemy.health = 30;
-            enemy.attack = 15;
-            enemy.defense = 18;
-            enemy.id = 8;
+            enemy.health = 45;
+            enemy.attack = 14;
+            enemy.defense = 8;
+            enemy.id = 9;
+            strcpy(enemy.name, "WENDIGOO");
             break;
         case DRAGON:
-            enemy.health = 100;
-            enemy.attack = 35;
+            enemy.health = 120;
+            enemy.attack = 20;
             enemy.defense = 10;
-            enemy.id = 9;
+            enemy.id = 10;
+            strcpy(enemy.name, "DRAGON");
             break;
         default:
         break;
     }
-}
-
-void look(Player *p)
-{
-    int num = rand() % 100;
-    int input;
-
-    // FLOOR ONE POSSIBLE FINDS
-    if (currentFloor == 1)
-    {
-        // 10%
-        if (num < 10)
-        {
-            printf("    -> You found a Rusty Sword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 5; p->sword = RUSTY_SWORD; };
-        }
-        // 10% 
-        else if (num < 20)
-        {
-            printf("    -> You found a Rusty Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 3; p->shield = RUSTY_SHIELD; };
-        }
-        // 5%
-        else if (num < 25)
-        {
-            printf("    -> You found an Iron Short Sword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 7; p->sword = IRON_SHORT_SWORD;};
-        }
-        // 5%
-        else if (num < 30)
-        {
-            printf("    -> You found an Iron Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 4; p->shield = IRON_SHIELD;};
-        }
-        else 
-        {
-            printf("    ~ You do not find anything.\n");
-        }
-        waitForEnter();
-    }
-    // FLOOR TWO POSSIBLE FINDS
-    else if (currentFloor == 2)
-    {
-        // 10%
-        if (num < 10)
-        {
-            printf("    -> You found an Iron Short Sword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 7; p->sword = IRON_SHORT_SWORD; };
-        }
-        // 10% 
-        else if (num < 20)
-        {
-            printf("    -> You found an Iron Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 4; p->shield = IRON_SHIELD; };
-        }
-        // 5%
-        else if (num < 25)
-        {
-            printf("    -> You found a Knights Broadsword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 10; p->sword = KNIGHTS_BROADSWORD; };
-        }
-        // 5%
-        else if (num < 30)
-        {
-            printf("    -> You found a Knights Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 6; p->shield = KNGIHTS_SHIELD; };
-        }
-        else 
-        {
-            printf("    ~ You do not find anything.\n");
-        }
-
-        waitForEnter();
-    }
-    // FLOOR THREE POSSIBLE FINDS
-    else if (currentFloor == 3)
-    {
-        if (num < 10)
-        {
-            printf("    -> You found an Excalibur Warsword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 20; p->sword = EXCALIBUR_WARSWORD; };
-        }
-        else if (num < 20)
-        {
-            printf("    -> You found a Dragonhide Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 15; p->shield = DRAGONHIDE_SHIELD; };
-        }
-        else 
-        {
-            printf("    ~ You do not find anything.\n");
-        }
-
-        waitForEnter();
-    }
-    // FLOOR FOUR POSSIBLE FINDS
-    else if (currentFloor == 4)
-    {
-        // 15%
-        if (num < 20)
-        {
-            printf("    -> You found an Excalibur Warsword!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 20; p->sword = EXCALIBUR_WARSWORD; };
-        }
-        // 15%
-        else if (num < 40)
-        {
-            printf("    -> You found a Dragonhide Shield!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 15; p->shield = DRAGONHIDE_SHIELD; };
-        }
-        // 5%
-        else if (num < 45)
-        {
-            printf("    -> You found the Sword of Legend!!!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 50; p->sword = SWORD_OF_LEGEND; };
-        }
-        // 5%
-        else if (num < 50)
-        {
-            printf("    -> You found the Shield of Light!!!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 25; p->shield = SHIELD_OF_LIGHT; };
-        }
-        else 
-        {
-            printf("    ~ You do not find anything.\n");
-        }
-
-        waitForEnter();
-    }
-    else if (currentFloor == 5)
-    {
-        // 30%
-        if (num < 30)
-        {
-            printf("    -> You found the Sword of Legend!!!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->attack = 50; p->sword = SWORD_OF_LEGEND; };
-        }
-        // 30%
-        else if (num < 60)
-        {
-            printf("    -> You found the Shield of Light!!!\n");
-            input = askToEquip();
-            if (input == 'Y') { p->defense = 25; p->shield = SHIELD_OF_LIGHT; };
-        }
-        else 
-        {
-            printf("    ~ You do not find anything.\n");
-        }
-
-        waitForEnter();
-    }
-
-    hasLooked = 1;
 }
 
 int askToEquip() {
@@ -744,37 +588,47 @@ int askToEquip() {
     }
 }
 
-void heal()
-{
-    int num = rand() % 100;
+void heal() {
+    if (hasHealed) {
+        printf("    ~ You've already healed this fight!\n");
+    }
+    else if (rand() % 100 < HEAL_CHANCE) {
+        int amt = 10 + rand() % 16;       // heal between 10 and 25 HP
+        player.health += amt;
+        if (player.health > MAX_HEALTH)
+            player.health = MAX_HEALTH;
+        printf("    -> You heal %d HP!\n", amt);
+        timesHealed++;
+    } 
+    else {
+        printf("    ~ Your heal failed!\n");
+    }
 
-    // 70% chance to heal
-    if (num < 70)
-    {
-        // 10-40HP
-        int healAmt = 10 + rand() % 30;
-        printf("    -> You successfully heal %d HP\n", healAmt);
-        player.health += healAmt;
-        if (player.health > 100) { player.health = 100; };
-        timesHealed += 1;
-    }
-    else 
-    {
-        printf("    ~ You failed to heal!\n");
-    }
     hasHealed = 1;
 }
+
 
 // MAIN GAME LOOP FUNCTION
 void game() 
 {
     // BASE PLAYER ATTACK AND DEFENSE WITH NOTHING EQUIPPED
                             // DEFAULTS
-    player.health   = 100;  // 100
+    player.health   = MAX_HEALTH;  // 100
     player.attack   = 3;    // 3
     player.defense  = 2;    // 2
     player.sword    = 0;    // 0
     player.shield   = 0;    // 0
+
+    clearScreen();
+    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+    sceneIntro();
+    printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
+
+    waitForEnter();
+    getchar();
+
+    // ADVANCE TO THE NEXT SCENE
+    currentScene = NOTHING;
 
     // WHILE GAME SHOULD RUN -> LOOP
     while(run) 
@@ -782,25 +636,47 @@ void game()
         // CLEAR SCREEN BEGINNING OF EACH LOOP
         clearScreen();
 
+        if (currentSpace == 10 && currentFloor == 1 && ifEnemy == 0)
+        {
+            currentScene = STAIRS;
+        }
+
         if (currentSpace == 11 && currentFloor == 1)
         {
             // GO TO SECOND FLOOR
             nextFloor();
         }
-        else if (currentSpace == 16 && currentFloor == 2)
+
+        if (currentSpace == 15 && currentFloor == 2 && ifEnemy == 0)
+        {
+            currentScene = STAIRS;
+        }
+
+        if (currentSpace == 16 && currentFloor == 2)
         {
             // GO TO THIRD FLOOR
             nextFloor();
         }
-        else if (currentSpace == 16 && currentFloor == 3)
+        if (currentSpace == 16 && currentFloor == 3)
         {
             // GO TO FOURTH FLOOR
             nextFloor();
         }
-        else if (currentSpace == 16 && currentFloor == 4)
+
+        if (currentSpace == 15 && currentFloor == 3 && ifEnemy == 0)
+        {
+            currentScene = STAIRS;
+        }
+
+        if (currentSpace == 16 && currentFloor == 4)
         {
             // GO TO FIFTH FLOOR
             nextFloor();
+        }
+
+        if (currentSpace == 15 && currentFloor == 4 && ifEnemy == 0)
+        {
+            currentScene = STAIRS;
         }
 
         // IF NOT IN BEGINNING SPACE - CHECK ENCOUNTERS

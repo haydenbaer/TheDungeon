@@ -42,7 +42,7 @@ int menu()
     int input;
 
     printf("%s\n", logo);
-    printf("    VER. 1.0\n\n");
+    printf("    VER. 1.1\n\n");
     printf("    1. START GAME\n");
     printf("    2. INFO\n\n");
 
@@ -73,6 +73,6 @@ void info()
     printf("\n    Game by Hayden Baer\n");
     printf("    =-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
     printf("    Started Project: 4/24/25\n");
-    printf("    VERSION: 1.0 | 4/29/25\n");
+    printf("    VERSION: 1.1 | 4/29/25\n");
     printf("    =-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n");
 }

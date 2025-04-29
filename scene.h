@@ -16,8 +16,9 @@ typedef enum
     SKELETON    = 7,
     MUMMY       = 8,
     MINOTAUR    = 9,
-    WENDIGOO     = 10,
-    DRAGON      = 11
+    WENDIGOO    = 10,
+    DRAGON      = 11,
+    STAIRS      = 12
 } SceneID;
 
 // INTRO SCENE
@@ -25,6 +26,8 @@ void sceneIntro();
 
 // EMPTY SCREEN - NO ENCOUNTER
 void sceneNothing();
+
+void sceneStairs();
 
 // FLOOR ONE SCENES
 void sceneRat();
